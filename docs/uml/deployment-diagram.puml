@@ -1,0 +1,54 @@
+@startuml deployment-diagram
+title Darija Translator: deployment diagram
+!pragma layout smetana
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodeStyle rectangle
+
+node "Developer / user computer" as pc {
+  node "Google Chrome" as chrome {
+    artifact "Darija Translator extension\n(Manifest V3: service worker + side panel)" as ext
+  }
+  node "PHP 8.1+ runtime" as php {
+    artifact "index.php (web form)\ntranslate.php (CLI)" as phpclient
+  }
+  node "Python 3.9+" as py {
+    artifact "darija_client.py (CLI / library)" as pyclient
+  }
+}
+
+node "Mobile device or emulator\n(Android / iOS)" as phone {
+  node "Expo Go / dev build" as expo {
+    artifact "React Native app" as rn
+  }
+}
+
+node "Application server host\n(laptop, VM or cloud instance)" as host {
+  node "JVM 21" as jvm {
+    node "Embedded Grizzly HTTP container\n:8080" as grizzly {
+      artifact "darija-translator-server.jar\n(Jakarta REST on Jersey)\n/api/translate  /api/health" as war
+    }
+  }
+}
+
+cloud "Google Cloud" as google {
+  node "Gemini API\ngenerativelanguage.googleapis.com" as gemini
+}
+
+node "Optional: same or another host" as local {
+  node "Ollama\n:11434\nlightweight local LLM" as ollama
+}
+
+ext --> war : HTTP/JSON + Basic auth
+phpclient --> war : HTTP/JSON + Basic auth\n(cURL)
+pyclient --> war : HTTP/JSON + Basic auth\n(urllib)
+rn --> war : HTTP/JSON + Basic auth\n(LAN address or 10.0.2.2)
+war --> gemini : HTTPS generateContent\n(x-goog-api-key)
+war ..> ollama : HTTP /api/chat\n(LLM_PROVIDER=ollama)
+
+note bottom of host
+  Configured only through environment variables
+  (API_PASSWORD, LLM_PROVIDER, GEMINI_API_KEY, ...).
+  Secrets stay on this node; the API key is only ever sent to Gemini.
+end note
+@enduml

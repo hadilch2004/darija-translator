@@ -1,0 +1,170 @@
+@startuml class-diagram
+title Darija Translator REST service: class diagram
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+hide empty members
+
+package "ma.aui.darija" {
+  class Main {
+    + {static} main(args : String[])
+  }
+  class DarijaServer {
+    + {static} start(config : AppConfig, llm : LlmClient) : HttpServer
+  }
+  class DarijaApplication <<ResourceConfig>> {
+    + DarijaApplication(config : AppConfig, llm : LlmClient)
+  }
+}
+
+package "ma.aui.darija.config" {
+  class AppConfig <<record>> {
+    host, port, username, password
+    provider, geminiApiKey, geminiModel
+    ollamaUrl, ollamaModel
+    maxTextLength, llmTimeoutSeconds
+    corsAllowedOrigin
+    + {static} fromEnv() : AppConfig
+    + {static} from(env : Function) : AppConfig
+    + activeModel() : String
+  }
+}
+
+package "ma.aui.darija.api  (Jakarta REST)" {
+  class TranslatorResource <<@Path("/translate")>> {
+    + translate(request : TranslationRequest) : TranslationResponse  <<POST>>
+    + translate(text, source, script : String) : TranslationResponse  <<GET>>
+  }
+  class HealthResource <<@Path("/health")>> {
+    + health() : Map
+  }
+  class CorsFilter <<@PreMatching>> {
+    + filter(request)
+    + filter(request, response)
+  }
+  class ExceptionMappers {
+    Api, Llm, WebApplication,
+    JsonParse, JsonMapping, CatchAll
+  }
+}
+
+package "ma.aui.darija.auth  (authentication)" {
+  annotation Secured <<@NameBinding>>
+  class BasicAuthFilter <<ContainerRequestFilter>> {
+    + filter(context)
+    ~ {static} credentials(header) : Optional
+  }
+  class UserStore {
+    + {static} singleUser(user, password) : UserStore
+    + authenticate(user, password) : Optional<AuthenticatedUser>
+  }
+  class AuthenticatedUser <<record>> {
+    name : String
+    roles : Set<String>
+  }
+}
+
+package "ma.aui.darija.service" {
+  class TranslationService {
+    + translate(text, sourceLanguage, script) : TranslationResponse
+  }
+  class ApiException {
+    status : int
+    code : String
+  }
+}
+
+package "ma.aui.darija.llm" {
+  interface LlmClient <<strategy>> {
+    + translate(task : TranslationTask) : String
+    + provider() : String
+    + model() : String
+  }
+  class GeminiClient {
+    - apiKey, model, baseUrl
+  }
+  class OllamaClient {
+    - model, baseUrl
+  }
+  class MockLlmClient
+  class LlmClientFactory {
+    + {static} create(config : AppConfig) : LlmClient
+  }
+  class Prompts {
+    + {static} system(task) : String
+    + {static} user(task) : String
+    + {static} clean(raw) : String
+  }
+  class JsonHttp <<package-private>> {
+    ~ {static} postJson(...) : JsonNode
+  }
+  class LlmException {
+    kind : Kind
+    upstreamStatus : int
+  }
+  class TranslationTask <<record>> {
+    text, sourceLanguage, script
+  }
+  enum Script {
+    ARABIC
+    LATIN
+  }
+}
+
+package "ma.aui.darija.model  (JSON DTOs)" {
+  class TranslationRequest <<record>> {
+    text, sourceLanguage, script
+  }
+  class TranslationResponse <<record>> {
+    translation, sourceLanguage, targetLanguage
+    script, provider, model
+  }
+  class ErrorResponse <<record>> {
+    error, message
+  }
+}
+
+Main ..> AppConfig : reads environment
+Main ..> LlmClientFactory
+Main ..> DarijaServer
+DarijaServer ..> DarijaApplication : creates
+DarijaApplication ..> TranslatorResource : registers
+DarijaApplication ..> HealthResource : registers
+DarijaApplication ..> BasicAuthFilter : registers
+DarijaApplication ..> CorsFilter : registers
+DarijaApplication ..> ExceptionMappers : registers
+DarijaApplication *-- TranslationService
+DarijaApplication *-- UserStore
+
+TranslatorResource --> TranslationService : delegates
+TranslatorResource ..> TranslationRequest
+TranslatorResource ..> TranslationResponse
+TranslatorResource ..> Secured : annotated with
+HealthResource --> TranslationService
+BasicAuthFilter ..> Secured : name-bound to
+BasicAuthFilter --> UserStore : verifies credentials
+UserStore ..> AuthenticatedUser : creates
+BasicAuthFilter ..> ErrorResponse : 401 body
+
+TranslationService --> LlmClient : uses
+TranslationService ..> Prompts : clean()
+TranslationService ..> TranslationTask : creates
+TranslationService ..> ApiException : validation errors
+ExceptionMappers ..> ApiException
+ExceptionMappers ..> LlmException
+ExceptionMappers ..> ErrorResponse
+
+LlmClient <|.. GeminiClient
+LlmClient <|.. OllamaClient
+LlmClient <|.. MockLlmClient
+LlmClientFactory ..> LlmClient : creates
+LlmClientFactory ..> AppConfig
+GeminiClient ..> Prompts
+OllamaClient ..> Prompts
+GeminiClient ..> JsonHttp
+OllamaClient ..> JsonHttp
+GeminiClient ..> LlmException
+TranslationTask --> Script
+@enduml

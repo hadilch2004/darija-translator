@@ -1,0 +1,35 @@
+@startuml use-case-diagram
+title Darija Translator: use cases
+!pragma layout smetana
+skinparam shadowing false
+left to right direction
+
+actor "User" as user
+actor "Gemini API /\nOllama" as llm <<external>>
+
+rectangle "Darija Translator system" {
+  usecase "Translate text\nto Darija" as UC1
+  usecase "Translate the selection\non a web page" as UC2
+  usecase "Speak in any language,\nhear Darija\n(voice to voice)" as UC3
+  usecase "Read translation aloud" as UC4
+  usecase "Copy translation" as UC5
+  usecase "Choose Arabic or\nLatin script" as UC6
+  usecase "Configure server\nand credentials" as UC7
+  usecase "Authenticate\n(HTTP Basic)" as UC8
+  usecase "Call the LLM" as UC9
+}
+
+user --> UC1
+user --> UC2
+user --> UC3
+user --> UC4
+user --> UC5
+user --> UC7
+UC2 ..> UC1 : <<include>>
+UC3 ..> UC1 : <<include>>
+UC3 ..> UC4 : <<include>>
+UC1 ..> UC8 : <<include>>
+UC1 ..> UC9 : <<include>>
+UC6 ..> UC1 : <<extend>>
+UC9 --> llm
+@enduml

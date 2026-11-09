@@ -1,0 +1,70 @@
+{
+  "info": {
+    "name": "Darija Translator",
+    "description": "Import into Postman. Set the collection variables baseUrl, username and password first.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "username", "value": "student" },
+    { "key": "password", "value": "change-me-please" }
+  ],
+  "item": [
+    {
+      "name": "Health (no auth)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/health" }
+    },
+    {
+      "name": "Translate: POST (Arabic letters)",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "basic", "basic": [{ "key": "username", "value": "{{username}}" }, { "key": "password", "value": "{{password}}" }] },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"text\": \"How are you? I would like a cup of tea.\",\n  \"sourceLanguage\": \"English\",\n  \"script\": \"arabic\"\n}" },
+        "url": "{{baseUrl}}/api/translate"
+      }
+    },
+    {
+      "name": "Translate: POST (Latin letters)",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "basic", "basic": [{ "key": "username", "value": "{{username}}" }, { "key": "password", "value": "{{password}}" }] },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"text\": \"Where is the train station?\",\n  \"script\": \"latin\"\n}" },
+        "url": "{{baseUrl}}/api/translate"
+      }
+    },
+    {
+      "name": "Translate: GET with query string",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "basic", "basic": [{ "key": "username", "value": "{{username}}" }, { "key": "password", "value": "{{password}}" }] },
+        "url": {
+          "raw": "{{baseUrl}}/api/translate?text=Good morning&source=English&script=arabic",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "translate"],
+          "query": [{ "key": "text", "value": "Good morning" }, { "key": "source", "value": "English" }, { "key": "script", "value": "arabic" }]
+        }
+      }
+    },
+    {
+      "name": "Error: no credentials (expect 401)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{ \"text\": \"Hello\" }" },
+        "url": "{{baseUrl}}/api/translate"
+      }
+    },
+    {
+      "name": "Error: blank text (expect 400)",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "basic", "basic": [{ "key": "username", "value": "{{username}}" }, { "key": "password", "value": "{{password}}" }] },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{ \"text\": \"   \" }" },
+        "url": "{{baseUrl}}/api/translate"
+      }
+    }
+  ]
+}

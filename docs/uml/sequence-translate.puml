@@ -1,0 +1,47 @@
+@startuml sequence-translate
+title Translate selected text from the Chrome extension
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+autonumber
+
+actor User
+participant "Web page" as Page
+participant "Context menu +\nservice worker" as BG
+participant "Side panel" as Panel
+participant "BasicAuthFilter" as Auth
+participant "TranslatorResource" as Res
+participant "TranslationService" as Svc
+participant "GeminiClient" as LLM
+participant "Gemini API" as Gemini
+
+User -> Page : selects text
+User -> BG : right-click, "Translate to Darija"
+BG -> Panel : sidePanel.open() and store text\n(chrome.storage.session)
+Panel -> Panel : paste text into the box
+Panel -> Auth : POST /api/translate\nAuthorization: Basic ...\n{"text": "...", "script": "arabic"}
+alt credentials missing or wrong
+  Auth --> Panel : 401 + WWW-Authenticate
+else credentials valid
+  Auth -> Res : request + SecurityContext(role=translator)
+  Res -> Svc : translate(text, source, script)
+  Svc -> Svc : validate (blank? too long? script?)
+  Svc -> LLM : translate(TranslationTask)
+  LLM -> Gemini : POST models/{model}:generateContent\nsystem prompt + <text>...</text>
+  alt Gemini replies
+    Gemini --> LLM : candidates[0].content.parts[].text
+    LLM --> Svc : raw text
+    Svc --> Res : TranslationResponse (cleaned)
+    Res --> Panel : 200 {"translation": "...", ...}
+    Panel -> User : shows RTL result
+    opt voice-to-voice or "read aloud"
+      Panel -> User : speechSynthesis reads the Darija
+    end
+  else quota, timeout, blocked
+    Gemini --> LLM : 429 / timeout / blockReason
+    LLM --> Svc : LlmException
+    Svc --> Res : exception
+    Res --> Panel : 429 / 504 / 422 / 502 JSON error
+    Panel -> User : shows the error message
+  end
+end
+@enduml
