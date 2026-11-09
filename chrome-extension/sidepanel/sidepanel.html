@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Darija Translator</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Darija Translator</h1>
+    <span id="status" class="status" role="status" aria-live="polite">Checking server…</span>
+    <button id="settingsToggle" class="icon" type="button" aria-expanded="false" aria-controls="settings"
+            title="Settings" aria-label="Settings">⚙</button>
+  </header>
+
+  <form id="settings" class="settings" hidden autocomplete="off">
+    <label>Server URL
+      <input id="serverUrl" type="text" inputmode="url" spellcheck="false" placeholder="http://localhost:8080">
+    </label>
+    <div class="grid2">
+      <label>Username
+        <input id="username" type="text" spellcheck="false" autocomplete="off">
+      </label>
+      <label>Password
+        <input id="password" type="password" autocomplete="new-password">
+      </label>
+    </div>
+    <div class="grid2">
+      <label>Translate from
+        <select id="sourceLanguage">
+          <option value="auto">Detect automatically</option>
+          <option>English</option>
+          <option>French</option>
+          <option>Spanish</option>
+          <option>German</option>
+          <option>Italian</option>
+          <option>Portuguese</option>
+          <option>Modern Standard Arabic</option>
+        </select>
+      </label>
+      <label>Write Darija in
+        <select id="script">
+          <option value="arabic">Arabic letters</option>
+          <option value="latin">Latin letters (3, 7, 9…)</option>
+        </select>
+      </label>
+    </div>
+    <label>I will speak in
+      <select id="recognitionLang">
+        <option value="en-US">English</option>
+        <option value="fr-FR">French</option>
+        <option value="es-ES">Spanish</option>
+        <option value="de-DE">German</option>
+        <option value="ar-MA">Arabic (Morocco)</option>
+        <option value="ar-SA">Arabic (Standard)</option>
+      </select>
+    </label>
+    <label class="check"><input id="autoSpeak" type="checkbox"> Read every translation aloud</label>
+    <label class="check"><input id="autoCopy" type="checkbox"> Copy every translation to the clipboard</label>
+    <div class="row">
+      <button id="save" class="primary" type="submit">Save &amp; test</button>
+    </div>
+    <p class="hint">The password is stored unencrypted in this browser profile. Use a throw-away password for this service.</p>
+  </form>
+
+  <main>
+    <label for="input" class="visually-hidden">Text to translate</label>
+    <textarea id="input" rows="5" maxlength="5000"
+              placeholder="Select text on any page, then right-click → “Translate to Darija”. Or type, or press 🎤 and speak."></textarea>
+    <div class="row between">
+      <span id="counter" class="muted">0 / 5000</span>
+      <span class="buttons">
+        <button id="mic" type="button" title="Speak, then hear the Darija translation (voice to voice)">🎤 Speak</button>
+        <button id="clear" type="button">Clear</button>
+        <button id="translate" class="primary" type="button">Translate</button>
+      </span>
+    </div>
+
+    <div id="error" class="error" role="alert" hidden>
+      <span id="errorText"></span>
+      <button id="micHelp" type="button" hidden>Allow microphone</button>
+    </div>
+
+    <section id="result" class="result" hidden aria-live="polite">
+      <h2>Darija</h2>
+      <p id="output" dir="rtl" lang="ary-Arab"></p>
+      <div class="row">
+        <button id="speak" type="button">🔊 Read aloud</button>
+        <button id="copy" type="button">📋 Copy</button>
+      </div>
+      <small id="meta" class="muted"></small>
+    </section>
+  </main>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
