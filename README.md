@@ -50,8 +50,9 @@ It exists for offline demos and tests.
 ./scripts/run-server.sh
 ```
 
-> **Model name:** Google renames and retires free-tier models regularly. The default is `gemini-2.5-flash`, set in
-> `GEMINI_MODEL`. If the service answers `502 llm_model_not_found`, choose a current Flash model from
+> **Model name:** Google renames and retires free-tier models regularly. The default is `gemini-flash-lite-latest`,
+> an alias that follows Google's current Flash-Lite model, set in `GEMINI_MODEL` (`gemini-3.1-flash-lite` also worked
+> in November 2026). If the service answers `502 llm_model_not_found`, choose a current Flash model from
 > <https://ai.google.dev/gemini-api/docs/models>. The `/api/health` endpoint shows which model is configured.
 
 ### With a local lightweight LLM (Ollama, offline and free)
@@ -69,7 +70,7 @@ LLM_PROVIDER=ollama API_PASSWORD=demo-password ./scripts/run-server.sh
 | `API_PASSWORD` | random, printed once at start-up | Basic-auth password |
 | `LLM_PROVIDER` | `gemini` | `gemini`, `ollama` or `mock` |
 | `GEMINI_API_KEY` | none (required for `gemini`) | Google AI Studio key |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model id |
+| `GEMINI_MODEL` | `gemini-flash-lite-latest` | Gemini model id |
 | `OLLAMA_URL` / `OLLAMA_MODEL` | `http://localhost:11434` / `llama3.2` | Local model server |
 | `HOST` / `PORT` | `0.0.0.0` / `8080` | Listen address (`0.0.0.0` lets a phone on your Wi-Fi connect) |
 | `MAX_TEXT_LENGTH` | `5000` | Longest accepted text (characters) |
@@ -103,7 +104,7 @@ Response:
   "targetLanguage": "Moroccan Arabic (Darija)",
   "script": "arabic",
   "provider": "gemini",
-  "model": "gemini-2.5-flash"
+  "model": "gemini-flash-lite-latest"
 }
 ```
 

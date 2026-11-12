@@ -62,7 +62,7 @@ public record AppConfig(
                             + "or start with LLM_PROVIDER=ollama (local model) or LLM_PROVIDER=mock (offline demo).");
         }
 
-        String geminiModel = stripModelsPrefix(get(env, "GEMINI_MODEL", "gemini-2.5-flash"));
+        String geminiModel = stripModelsPrefix(get(env, "GEMINI_MODEL", "gemini-flash-lite-latest"));
         String ollamaModel = get(env, "OLLAMA_MODEL", "llama3.2");
         requireModelName("GEMINI_MODEL", geminiModel);
         requireModelName("OLLAMA_MODEL", ollamaModel);
